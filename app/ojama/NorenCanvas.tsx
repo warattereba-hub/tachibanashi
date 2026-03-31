@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import ShareButton from "@/components/ShareButton";
 
 const NOREN_COLOR_LEFT  = "#2a1f0c";
 const NOREN_COLOR_RIGHT = "#261b0b";
@@ -12,7 +13,7 @@ const OPEN_THRESHOLD    = 0.72;  // fraction of canvas height dragged to "open"
 
 type Phase = "idle" | "dragging" | "animating" | "open";
 
-export default function NorenCanvas() {
+export default function NorenCanvas({ hostId }: { hostId?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const phaseRef  = useRef<Phase>("idle");
   const progressRef = useRef(0);   // 0 = closed, 1 = fully open
@@ -21,6 +22,19 @@ export default function NorenCanvas() {
 
   const [phase, setPhase]     = useState<Phase>("idle");
   const [showMsg, setShowMsg] = useState(false);
+  const [hostMessage, setHostMessage] = useState("気軽にどうぞ。\n店にいます。");
+  const [hostName, setHostName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hostId) return;
+    fetch(`/api/hosts/${hostId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.host?.hostMessage) setHostMessage(data.host.hostMessage);
+        if (data.host?.placeName) setHostName(data.host.placeName);
+      })
+      .catch(() => {});
+  }, [hostId]);
 
   /* ── Draw ── */
   const draw = useCallback((progress: number) => {
@@ -289,25 +303,36 @@ export default function NorenCanvas() {
           >
             from the host
           </p>
+          {hostName && (
+            <p
+              className="mb-3 text-sm italic"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-sub)" }}
+            >
+              {hostName}
+            </p>
+          )}
           <p
             className="mb-10 text-2xl leading-[1.8]"
-            style={{ fontFamily: "var(--font-display)", color: "var(--color-nari)" }}
+            style={{ fontFamily: "var(--font-display)", color: "var(--color-nari)", whiteSpace: "pre-line" }}
           >
-            気軽にどうぞ。<br />店にいます。
+            {hostMessage}
           </p>
-          <Link href="/">
-            <button
-              className="rounded-full px-6 py-2.5 text-xs tracking-[0.2em] uppercase transition-opacity active:opacity-60"
-              style={{
-                border: "1px solid var(--color-border)",
-                color: "var(--color-sub)",
-                fontFamily: "var(--font-label)",
-                background: "var(--color-surface)",
-              }}
-            >
-              ← 地図にもどる
-            </button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <button
+                className="rounded-full px-6 py-2.5 text-xs tracking-[0.2em] uppercase transition-opacity active:opacity-60"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-sub)",
+                  fontFamily: "var(--font-label)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                ← 地図にもどる
+              </button>
+            </Link>
+            <ShareButton title="Tachibanashi — 暖簾をくぐる" text="気軽にどうぞ。店にいます。" />
+          </div>
         </div>
       )}
 

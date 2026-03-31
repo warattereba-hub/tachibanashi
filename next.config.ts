@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // mapbox-gl uses browser APIs — exclude from server-side bundling
+  serverExternalPackages: [],
 };
 
 export default nextConfig;

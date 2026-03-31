@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_JP, Special_Elite, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 const notoSerifJP = Noto_Serif_JP({
   variable: "--font-noto-serif-jp",
