@@ -1,5 +1,6 @@
 "use client";
 
+import "mapbox-gl/dist/mapbox-gl.css";
 import Link from "next/link";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
