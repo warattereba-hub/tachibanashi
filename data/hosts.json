@@ -1,1 +1,31 @@
-{"hosts":[]}
+{
+  "hosts": [
+    {
+      "id": "ichinohe-mabuchi",
+      "placeName": "一戸町・馬淵川",
+      "location": "岩手県二戸郡一戸町",
+      "hookSentence": "一戸の川原で、2億年前の木が石になって拾える。",
+      "status": "active",
+      "lat": 40.2131,
+      "lng": 141.2931
+    },
+    {
+      "id": "tono-denshoen",
+      "placeName": "遠野・伝承園",
+      "location": "岩手県遠野市土淵町",
+      "hookSentence": "遠野では、カッパを釣るためのキュウリが今も売られている。",
+      "status": "rest",
+      "lat": 39.3556,
+      "lng": 141.6139
+    },
+    {
+      "id": "hanamaki-rinpusha",
+      "placeName": "花巻・林風舎",
+      "location": "岩手県花巻市大通り",
+      "hookSentence": "花巻の古い家に、宮沢賢治の弟が残した帳面がある。",
+      "status": "active",
+      "lat": 39.3889,
+      "lng": 141.1161
+    }
+  ]
+}
