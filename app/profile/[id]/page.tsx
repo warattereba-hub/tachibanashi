@@ -125,7 +125,7 @@ export default function ProfilePage() {
         )}
 
         {/* Tags */}
-        {host.tags.length > 0 && (
+        {host.tags?.length > 0 && (
           <div className="mb-8">
             <p
               className="text-xs tracking-[0.2em] uppercase mb-3"
@@ -134,7 +134,7 @@ export default function ProfilePage() {
               今、話したいこと
             </p>
             <div className="flex flex-wrap gap-2">
-              {host.tags.map((tag) => (
+              {host.tags?.map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 text-xs"
