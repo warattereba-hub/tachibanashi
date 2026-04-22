@@ -46,6 +46,24 @@ export default function MapPage() {
   const initMap = useCallback(async () => {
     if (!mapContainer.current || mapRef.current) return;
 
+    const container = mapContainer.current;
+
+    // Wait until the container has a non-zero rendered size before creating the map.
+    // If Map() runs while clientHeight === 0, the canvas is frozen at 300×150.
+    if (container.clientWidth === 0 || container.clientHeight === 0) {
+      await new Promise<void>((resolve) => {
+        const sizeObserver = new ResizeObserver((_, obs) => {
+          if (container.clientWidth > 0 && container.clientHeight > 0) {
+            obs.disconnect();
+            resolve();
+          }
+        });
+        sizeObserver.observe(container);
+      });
+    }
+
+    if (!mapContainer.current || mapRef.current) return;
+
     const mapboxgl = (await import("mapbox-gl")).default;
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
@@ -62,12 +80,21 @@ export default function MapPage() {
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
 
     map.on("load", () => {
+      map.resize();
       setMapReady(true);
     });
+
+    const handleResize = () => map.resize();
+    window.addEventListener("resize", handleResize);
+
+    const ro = new ResizeObserver(() => map.resize());
+    if (mapContainer.current) ro.observe(mapContainer.current);
 
     mapRef.current = map;
 
     return () => {
+      window.removeEventListener("resize", handleResize);
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -150,7 +177,11 @@ export default function MapPage() {
 
       {/* Map or SVG fallback */}
       {hasMapbox ? (
-        <div ref={mapContainer} className="absolute inset-0" style={{ zIndex: 0 }} />
+        <div
+          ref={mapContainer}
+          className="absolute inset-0"
+          style={{ zIndex: 0, width: "100%", height: "100%" }}
+        />
       ) : (
         <FallbackMap />
       )}

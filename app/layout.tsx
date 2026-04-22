@@ -35,7 +35,7 @@ export default function RootLayout({
       lang="ja"
       className={`${notoSerifJP.variable} ${specialElite.variable} ${playfairDisplay.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-ink text-nari">{children}</body>
+      <body className="h-full bg-ink text-nari">{children}</body>
     </html>
   );
 }

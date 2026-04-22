@@ -48,3 +48,7 @@ body::before {
 .mapboxgl-ctrl-attrib a {
   color: #8a7050 !important;
 }
+
+html, body {
+  height: 100%;
+}
