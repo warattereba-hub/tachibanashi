@@ -139,7 +139,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-ink)" }}>
+      <div className="min-h-screen min-h-dvh flex items-center justify-center" style={{ background: "var(--color-ink)" }}>
         <p className="text-sm" style={{ color: "var(--color-border)", fontFamily: "var(--font-label)", letterSpacing: "0.15em" }}>
           Loading...
         </p>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
     : "";
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-ink)" }}>
+    <div className="min-h-screen min-h-dvh" style={{ background: "var(--color-ink)" }}>
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-8 pb-6">
         <Link

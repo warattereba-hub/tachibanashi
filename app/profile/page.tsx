@@ -61,7 +61,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--color-ink)" }}>
+    <div className="min-h-screen min-h-dvh flex flex-col" style={{ background: "var(--color-ink)" }}>
       {/* Photo area */}
       <div className="relative w-full" style={{ height: "52vw", maxHeight: 280, minHeight: 180 }}>
         <BookshelfSilhouette />

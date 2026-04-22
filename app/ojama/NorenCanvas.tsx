@@ -277,7 +277,7 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
   }, [draw]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden" style={{ background: "var(--color-ink)" }}>
+    <div className="relative h-screen h-dvh w-screen w-dvw overflow-hidden" style={{ background: "var(--color-ink)" }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full touch-none"

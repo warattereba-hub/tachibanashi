@@ -44,7 +44,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--color-ink)" }}>
+      <div className="min-h-screen min-h-dvh flex items-center justify-center" style={{ background: "var(--color-ink)" }}>
         <p className="text-sm" style={{ color: "var(--color-border)", fontFamily: "var(--font-label)", letterSpacing: "0.15em" }}>
           Loading...
         </p>
@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
   if (!host) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "var(--color-ink)" }}>
+      <div className="min-h-screen min-h-dvh flex flex-col items-center justify-center gap-4" style={{ background: "var(--color-ink)" }}>
         <p className="text-sm" style={{ color: "var(--color-sub)" }}>ホストが見つかりません</p>
         <Link href="/" className="text-xs tracking-widest uppercase" style={{ color: "var(--color-amber)", fontFamily: "var(--font-label)" }}>
           ← 地図へ
@@ -66,7 +66,7 @@ export default function ProfilePage() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--color-ink)" }}>
+    <div className="min-h-screen min-h-dvh flex flex-col" style={{ background: "var(--color-ink)" }}>
       {/* Hero area */}
       <div className="relative w-full" style={{ height: "52vw", maxHeight: 280, minHeight: 180 }}>
         <BookshelfSilhouette />

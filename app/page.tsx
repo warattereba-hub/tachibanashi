@@ -74,7 +74,7 @@ export default function MapPage() {
       center: [141.15, 39.1],
       zoom: 9,
       attributionControl: false,
-      logoPosition: "bottom-right",
+      logoPosition: "bottom-left",
     });
 
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
@@ -173,7 +173,7 @@ export default function MapPage() {
   const hasMapbox = Boolean(MAPBOX_TOKEN);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden select-none" style={{ background: "#3a2e1e" }}>
+    <div className="relative h-screen h-dvh w-screen w-dvw overflow-hidden select-none" style={{ background: "#3a2e1e" }}>
 
       {/* Map or SVG fallback */}
       {hasMapbox ? (

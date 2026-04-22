@@ -134,7 +134,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-ink)" }}>
+    <div className="min-h-screen min-h-dvh" style={{ background: "var(--color-ink)" }}>
       <header className="flex items-center justify-between px-6 pt-8 pb-6">
         <Link
           href="/"
