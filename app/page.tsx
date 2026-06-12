@@ -3,7 +3,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import Link from "next/link";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import ShareButton from "@/components/ShareButton";
 
 interface HostPin {
@@ -22,7 +21,6 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 const MAP_STYLE = "mapbox://styles/mapbox/dark-v11";
 
 export default function MapPage() {
-  const router = useRouter();
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -34,7 +32,7 @@ export default function MapPage() {
   // Fetch hosts
   useEffect(() => {
     fetch("/api/hosts")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))))
       .then((data) => {
         setHosts(data.hosts ?? []);
         if (data.hosts?.length > 0) setSelected(data.hosts[0]);
@@ -102,7 +100,18 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!MAPBOX_TOKEN) return;
-    initMap();
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    initMap().then((c) => {
+      // If the component unmounted while the map was initializing,
+      // run the cleanup immediately instead of storing it.
+      if (cancelled) c?.();
+      else cleanup = c;
+    });
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
   }, [initMap]);
 
   // Add/update markers when hosts or map are ready
@@ -173,7 +182,15 @@ export default function MapPage() {
   const hasMapbox = Boolean(MAPBOX_TOKEN);
 
   return (
-    <div className="relative h-screen h-dvh w-screen w-dvw overflow-hidden select-none" style={{ background: "#3a2e1e" }}>
+    <div
+      className="relative h-screen h-dvh w-screen w-dvw overflow-hidden select-none"
+      style={{
+        background: "#3a2e1e",
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        boxSizing: "border-box",
+      }}
+    >
 
       {/* Map or SVG fallback */}
       {hasMapbox ? (
@@ -239,7 +256,7 @@ export default function MapPage() {
       </header>
 
       {/* SVG fallback pins for no-mapbox mode */}
-      {!hasMapbox && hosts.filter((h) => h.lat === null).map((host, i) => (
+      {!hasMapbox && hosts.map((host, i) => (
         <button
           key={host.id}
           onClick={() => setSelected(host)}
