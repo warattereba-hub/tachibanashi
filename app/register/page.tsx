@@ -31,6 +31,26 @@ const SUBLABEL_STYLE: React.CSSProperties = {
   lineHeight: 1.6,
 };
 
+// Downscale to keep the stored base64 small (the API rejects huge payloads).
+const PHOTO_MAX_EDGE = 1000;
+
+async function fileToResizedDataURL(file: File): Promise<string | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg", 0.8);
+  } catch {
+    return null;
+  }
+}
+
 async function geocodeLocation(query: string): Promise<{ lat: number; lng: number } | null> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   if (!token) return null;
@@ -92,6 +112,7 @@ export default function RegisterPage() {
           tags: tags.map((t) => t.trim()).filter(Boolean),
           hostMessage: hostMessage.trim(),
           passphrase: passphrase.trim(),
+          photoBase64: preview,
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
         }),
@@ -111,10 +132,10 @@ export default function RegisterPage() {
     }
   };
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
+    const dataUrl = await fileToResizedDataURL(file);
+    if (dataUrl) setPreview(dataUrl);
   }, []);
 
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {

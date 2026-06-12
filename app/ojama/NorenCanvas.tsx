@@ -8,7 +8,6 @@ const NOREN_COLOR_LEFT  = "#2a1f0c";
 const NOREN_COLOR_RIGHT = "#261b0b";
 const STRIPE_COLOR      = "#8b6914";
 const TEXT_COLOR        = "#c4b89a";
-const PANEL_W           = 0.5;   // fraction of canvas width per panel
 const OPEN_THRESHOLD    = 0.72;  // fraction of canvas height dragged to "open"
 
 type Phase = "idle" | "dragging" | "animating" | "open";
@@ -28,8 +27,9 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
   useEffect(() => {
     if (!hostId) return;
     fetch(`/api/hosts/${hostId}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        if (!data) return;
         if (data.host?.hostMessage) setHostMessage(data.host.hostMessage);
         if (data.host?.placeName) setHostName(data.host.placeName);
       })
@@ -43,10 +43,13 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
+    // Backing store is scaled by devicePixelRatio — draw in CSS-pixel coordinates.
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.width / dpr;
+    const H = canvas.height / dpr;
     const cx = W / 2;
 
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
     // Background
@@ -233,7 +236,7 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dy = dragStartY.current - getClientY(e);
-    const raw = Math.max(0, Math.min(1, dy / canvas.height));
+    const raw = Math.max(0, Math.min(1, dy / canvas.offsetHeight));
     progressRef.current = raw;
     draw(raw);
   };
@@ -262,8 +265,9 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
     if (!canvas) return;
 
     const resize = () => {
-      canvas.width  = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width  = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
       draw(progressRef.current);
     };
 
@@ -277,7 +281,15 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
   }, [draw]);
 
   return (
-    <div className="relative h-screen h-dvh w-screen w-dvw overflow-hidden" style={{ background: "var(--color-ink)" }}>
+    <div
+      className="relative h-screen h-dvh w-screen w-dvw overflow-hidden"
+      style={{
+        background: "var(--color-ink)",
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        boxSizing: "border-box",
+      }}
+    >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full touch-none"
@@ -331,7 +343,7 @@ export default function NorenCanvas({ hostId }: { hostId?: string }) {
                 ← 地図にもどる
               </button>
             </Link>
-            <ShareButton title="Tachibanashi — 暖簾をくぐる" text="気軽にどうぞ。店にいます。" />
+            <ShareButton title="Tachibanashi — 暖簾をくぐる" text={hostMessage} />
           </div>
         </div>
       )}

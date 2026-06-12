@@ -12,7 +12,8 @@ interface HostData {
   hookSentence: string;
   tags: string[];
   hostMessage: string;
-  passphrase: string;
+  hasPassphrase: boolean;
+  photoBase64: string | null;
   status: "active" | "rest";
 }
 
@@ -23,22 +24,41 @@ export default function ProfilePage() {
 
   const [phraseInput, setPhraseInput] = useState("");
   const [unlocked, setUnlocked] = useState(false);
+  const [unlockedMessage, setUnlockedMessage] = useState("");
+  const [verifying, setVerifying] = useState(false);
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
     fetch(`/api/hosts/${id}`)
-      .then((r) => r.json())
-      .then((data) => setHost(data.host ?? null))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setHost(data?.host ?? null))
+      .catch(() => setHost(null))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const tryPassphrase = () => {
-    if (!host?.passphrase) return;
-    if (host.passphrase.trim().toLowerCase() === phraseInput.trim().toLowerCase()) {
-      setUnlocked(true);
-    } else {
+  // The passphrase is verified server-side — it is never sent to visitors.
+  const tryPassphrase = async () => {
+    if (!host?.hasPassphrase || verifying) return;
+    setVerifying(true);
+    try {
+      const res = await fetch(`/api/hosts/${host.id}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passphrase: phraseInput }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        setUnlockedMessage(data.hostMessage ?? host.hostMessage);
+        setUnlocked(true);
+      } else {
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    } catch {
       setShake(true);
       setTimeout(() => setShake(false), 500);
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -66,10 +86,28 @@ export default function ProfilePage() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   return (
-    <div className="min-h-screen min-h-dvh flex flex-col" style={{ background: "var(--color-ink)" }}>
+    <div
+      className="min-h-screen min-h-dvh flex flex-col"
+      style={{
+        background: "var(--color-ink)",
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        boxSizing: "border-box",
+      }}
+    >
       {/* Hero area */}
-      <div className="relative w-full" style={{ height: "52vw", maxHeight: 280, minHeight: 180 }}>
-        <BookshelfSilhouette />
+      <div className="relative w-full overflow-hidden" style={{ height: "52vw", maxHeight: 280, minHeight: 180 }}>
+        {host.photoBase64 ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={host.photoBase64}
+            alt={host.placeName}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ opacity: 0.85 }}
+          />
+        ) : (
+          <BookshelfSilhouette />
+        )}
         <div
           className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
           style={{ background: "linear-gradient(to bottom, transparent, var(--color-ink))" }}
@@ -152,7 +190,7 @@ export default function ProfilePage() {
         )}
 
         {/* Passphrase section */}
-        {host.passphrase && !unlocked ? (
+        {host.hasPassphrase && !unlocked ? (
           <div
             className="mb-8 p-4"
             style={{ border: "1px solid var(--color-border)", borderRadius: 2, background: "var(--color-surface)" }}
@@ -188,7 +226,8 @@ export default function ProfilePage() {
               />
               <button
                 onClick={tryPassphrase}
-                className="px-4 py-2 text-xs tracking-widest transition-opacity active:opacity-60"
+                disabled={verifying}
+                className="px-4 py-2 text-xs tracking-widest transition-opacity active:opacity-60 disabled:opacity-40"
                 style={{
                   borderRadius: 2,
                   border: "1px solid var(--color-amber)",
@@ -197,7 +236,7 @@ export default function ProfilePage() {
                   background: "transparent",
                 }}
               >
-                解錠
+                {verifying ? "..." : "解錠"}
               </button>
             </div>
           </div>
@@ -218,7 +257,7 @@ export default function ProfilePage() {
               ✦ 合言葉が一致しました
             </p>
             <p className="text-sm leading-[1.9]" style={{ color: "var(--color-sub)" }}>
-              {host.hostMessage}
+              {unlockedMessage || host.hostMessage}
             </p>
           </div>
         ) : null}

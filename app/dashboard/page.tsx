@@ -78,6 +78,8 @@ export default function DashboardPage() {
   const [savingPhrase, setSavingPhrase] = useState(false);
   const [savedPhrase, setSavedPhrase] = useState(false);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   useEffect(() => {
     fetch("/api/hosts/me")
       .then((r) => {
@@ -107,14 +109,23 @@ export default function DashboardPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "保存に失敗しました");
+    }
     return res.json();
   };
 
   const toggleStatus = async () => {
     if (!host) return;
     const next = host.status === "active" ? "rest" : "active";
-    await patch({ status: next });
-    setHost((h) => h ? { ...h, status: next } : h);
+    setSaveError(null);
+    try {
+      await patch({ status: next });
+      setHost((h) => h ? { ...h, status: next } : h);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "保存に失敗しました");
+    }
   };
 
   const saveWith = async <T,>(
@@ -123,10 +134,13 @@ export default function DashboardPage() {
     setSaved: (b: boolean) => void
   ) => {
     setSaving(true);
+    setSaveError(null);
     try {
       await fn();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "保存に失敗しました");
     } finally {
       setSaving(false);
     }
@@ -194,6 +208,21 @@ export default function DashboardPage() {
       </div>
 
       <div className="px-6 pb-16 flex flex-col gap-6">
+
+        {saveError && (
+          <p
+            className="text-xs py-2 px-3"
+            style={{
+              color: "#c9553a",
+              border: "1px solid rgba(201,85,58,0.3)",
+              borderRadius: 2,
+              background: "rgba(201,85,58,0.08)",
+              fontFamily: "var(--font-sans)",
+            }}
+          >
+            {saveError}
+          </p>
+        )}
 
         {/* ── 1. オン/オフ切り替え ── */}
         <section
